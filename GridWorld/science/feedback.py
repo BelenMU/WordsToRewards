@@ -24,7 +24,7 @@ vader_analyzer = SentimentIntensityAnalyzer()
 # Import functions
 from science.draw_map import map_loc_landmark, show_trajectory_on_map
 from science.config import LIST_SEGMENTS, LIST_LOCATIONS, NUM_STEPS, MASK_SEGMENTS, nlp 
-from science.config import GPT_MODEL, TEMPERATURE, SYSTEM_MESSAGE, FUNCTION_STRUCTURE, SECRET_KEY, SYSTEM_MESSAGE_NOCERTAINTY, FUNCTION_STRUCTURE_NOCERTAINTY
+from science.config import GPT_MODEL, TEMPERATURE, FUNCTION_STRUCTURE, SECRET_KEY, SYSTEM_MESSAGE_NOCERTAINTY, FUNCTION_STRUCTURE_NOCERTAINTY
 from science.data_to_GPT import algebraic_to_index, create_landmark_dict, GridState, vector_to_algebraic
 
 import openai
@@ -156,110 +156,6 @@ def sample_reward_HF_Bernoulli_Vader_trajectory(trajectory, images, loc_landmark
       
     return human_feedback, out_reward, out_certainty
 
-def sentence_to_locations(sent, label_reward, certainty_reward, trajectory, grid_width,
-                          grid_height, list_landmarks, pixel_landmarks, out_certainty, out_reward):
-    """
-    Translates sentences to locations on a grid map, with their corresponding reward and certainty values.
-    
-    Args:
-        sent (Token Sequence): The sequence of tokens representing the sentence.
-        label_reward (float): The reward value associated with the sentence.
-        certainty_reward (float): The certainty associated with the reward's label.
-        trajectory (np.ndarray): Array representing the trajectory of movement on the grid.
-        grid_width (int): Width of the grid map.
-        grid_height (int): Height of the grid map.
-        list_landmarks (List): List of names of landmarks.
-        pixel_landmarks (np.ndarray): Array representing location of landmarks as pixels on the grid.
-        out_certainty (dict): Output dictionary mapping state indices to a list of certainty values.
-        out_reward (dict): Output dictionary mapping state indices to a list of reward values.
-
-    Returns:
-        tuple: 
-            state_detected (bool): Indicates if a relevant state has been detected.
-            out_reward (dict): Updated dictionary of reward values.
-            out_certainty (dict): Updated dictionary of certainty values.
-    """
-    state_detected = False
-    trajectory_map = np.zeros([grid_width, grid_height])
-    trajectory_map[trajectory[:, 0], trajectory[:, 1]] = 1
-    
-    # Process each token in the sentence
-    for token in sent:
-        # Process non-punctuation, non-stop words
-        if not token.is_punct and not token.is_stop:
-            similarity_scores = [word.similarity(token) for word in LIST_SEGMENTS]
-            max_value = max(similarity_scores)
-            if max_value > 0.5:
-                state_detected = True                    
-                ind_loc = similarity_scores.index(max_value)
-                certainty_loc = certainty_reward * MASK_SEGMENTS[ind_loc, :]                                    
-                state_index_prev = -1 # To detect instances where agent is stuck
-                non_zero_indices = np.nonzero(certainty_loc)
-                non_zero_indices = non_zero_indices[0][:]
-                for temp_ind in non_zero_indices:         
-                    # Pass from trajectory to state index
-                    state_index = trajectory[temp_ind, 0] * grid_height + trajectory[temp_ind, 1] 
-                    if state_index == state_index_prev: # Stuck
-                        stuck_uncertainty = out_certainty[state_index]
-                        stuck_uncertainty[-1] = max(stuck_uncertainty[-1], certainty_loc[temp_ind])
-                        out_certainty[state_index] = stuck_uncertainty
-                    else: 
-                        if state_index not in out_reward: 
-                            out_reward[state_index] = [label_reward] 
-                            out_certainty[state_index] = [certainty_loc[temp_ind]] 
-                        else:
-                            out_reward[state_index].append(label_reward)  # Append
-                            out_certainty[state_index].append(certainty_loc[temp_ind])
-                        state_index_prev = state_index    
-
-                #print("\t", token.text, "->",  list_segment[ind_loc].text, "->" , label_reward, ": ", certainty_reward) 
-            elif token.pos_ == "NOUN":
-                similarity_scores = [word.similarity(token) for word in list_landmarks]
-                max_value = max(similarity_scores)
-                if max_value > 0.45:
-                    state_detected = True
-                    ind_landmark = similarity_scores.index(max_value)
-
-                    if token.head.similarity(nlp("of")) > 0.97:
-                        loc = token.head.head
-                        if loc.similarity(nlp("part")) > 0.97:
-                            for child in loc.children:
-                                if child.dep_ == 'amod': 
-                                    loc = child
-                    else:
-                        loc = token.head
-                        if loc.dep_ == 'ROOT' or loc.dep_ == 'AUX':
-                            loc = nlp("in")
-                    if loc.similarity(nlp("below")) > 0.99: # Hardwire below, because if not it relates it to above!
-                        ind_loc = 1
-                    else:
-                        similarity_loc = [word.similarity(loc) for word in LIST_LOCATIONS]
-                        max_loc = max(similarity_loc)
-                        ind_loc = similarity_loc.index(max_loc)
-                    feedback_map = map_loc_landmark(ind_loc, ind_landmark, certainty_reward,\
-                                                    pixel_landmarks, grid_width, grid_height) # Before trajectory
-                    feedback_map_times_trajectory = feedback_map * trajectory_map
-                    #print("Feedback map sum:", sum(sum(feedback_map_times_trajectory)))
-                    if sum(sum(feedback_map_times_trajectory)) != 0:
-                        # Trajectory detected at defined spot -> Evaluative                      
-                        feedback_map = feedback_map_times_trajectory
-                    #else:          
-                        # Trajectory not detected at defined spot -> Descriptive or imperative
-
-                    non_zero_indices = np.nonzero(feedback_map)
-                    for loop in np.arange(non_zero_indices[0].size):         
-                        # Pass from trajectory to state index
-                        temp_ind_x = non_zero_indices[0][loop]
-                        temp_ind_y = non_zero_indices[1][loop]
-                        state_index = temp_ind_x * grid_height + temp_ind_y
-                        if state_index not in out_reward: 
-                            out_reward[state_index] = [label_reward] 
-                            out_certainty[state_index] = [feedback_map[temp_ind_x, temp_ind_y]] 
-                        else:
-                            out_reward[state_index].append(label_reward)
-                            out_certainty[state_index].append(feedback_map[temp_ind_x, temp_ind_y])
-                            
-    return state_detected, out_reward, out_certainty
 def sample_reward_from_HF(trajectory, human_feedback, grid_width, grid_height, list_landmarks, pixel_landmarks):  
     """
     Processes human feedback to obtain state level rewards. If no state is detected on a sentence, assign to whole trajectory.
@@ -393,70 +289,6 @@ def sample_reward_HF_Bernoulli_Vader(trajectory, images, loc_landmarks, road, gr
         out_reward, out_certainty = sentiment_trajectory(trajectory, grid_height, out_reward, out_certainty, \
                                                          label_reward, certainty_reward)
         return human_feedback, out_reward, out_certainty
-
-def sample_reward_HF_GPT(trajectory, images, loc_landmarks, road, grid_width, \
-                        grid_height, pos_init, pixel_landmarks, list_landmarks):
-    """
-    Processes human feedback with GPT4 to obtain state level rewards.
-
-    Args:
-        trajectory (list): The list of coordinates representing the agent's trajectory.
-        images (np.array): The images of the landmarks.
-        loc_landmarks (dict): The dict mapping landmarks to their locations.
-        road (np.array): An array containing the road's locations, i.e., the optimal path to be taught to the agent.
-        grid_width (int): The width of the grid representing the environment.
-        grid_height (int): The height of the grid representing the environment.
-        pos_init (tuple): The initial position of the agent on the grid.
-        pixel_landmarks (np.ndarray): Array representing location of landmarks as pixels on the grid.
-        list_landmarks (List): List of names of landmarks.
-
-    Returns:
-        tuple: consisting of
-            - human_feedback (str): The feedback provided by the human.
-            - out_reward (dict): A dictionary mapping locations to reward values.
-            - out_certainty (dict): A dictionary mapping locations to certainty values.
-    """
-    # Show trajectory on map
-    _ = show_trajectory_on_map(images, loc_landmarks, road, grid_width, grid_height, trajectory, pos_init)
-
-    # Ask human for feedback
-    human_feedback = get_HF()
-    doc = nlp(human_feedback)
-    
-    # Initialize dictionaries
-    out_reward = {}
-    out_certainty = {}
-    state_detected = False
-
-    max_index = grid_width * grid_height
-    landmark_dict = create_landmark_dict(pixel_landmarks, list_landmarks)
-    trajectory_algebraic = vector_to_algebraic(np.array(trajectory))
-    
-    for sent in doc.sents: # Divide feedback into separate sentences   
-        state = GridState(sent.text, landmark_dict, trajectory_algebraic)
-        gptResponse = openai.chat.completions.create(
-                model = GPT_MODEL,
-                temperature= TEMPERATURE,
-                messages= [SYSTEM_MESSAGE, 
-                           {"role": "user", "content": state.get_prompt()}],
-                functions=[FUNCTION_STRUCTURE],
-                    function_call= { "name": "getReward" })
-            
-        json_data = gptResponse.choices[0].message.function_call.arguments
-        reward_data = json.loads(json_data)
-        ind_reward = algebraic_to_index(reward_data['locations'],  grid_height)
-        ind_reward = list(np.array(ind_reward)[np.array(ind_reward) < max_index])
-
-        for temp_ind in range(len(ind_reward)):
-            state_index = ind_reward[temp_ind]
-            if state_index not in out_reward: 
-                out_reward[state_index] = [reward_data['label']] 
-                out_certainty[state_index] = [reward_data['certainty_locations'][temp_ind]] 
-            else: # Append
-                out_reward[state_index].append(reward_data['label'])  
-                out_certainty[state_index].append(reward_data['certainty_locations'][temp_ind])
-                
-    return human_feedback, out_reward, out_certainty
 
 def sample_reward_HF_GPT_nocertainty(trajectory, images, loc_landmarks, road, grid_width, \
                         grid_height, pos_init, pixel_landmarks, list_landmarks):

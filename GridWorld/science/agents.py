@@ -1,11 +1,8 @@
 import numpy as np
 import random
 from scipy.stats import beta
-#import spacy
-#from spacy import displacy 
 from tqdm import tqdm # For progress bar
 import copy
-#from transformers import pipeline
 import os
 import pickle
 
@@ -254,8 +251,6 @@ class QLearningAgent_Bernoulli_greedy(QLearningAgent_Bernoulli):
                         self.beta[ind_reward] += temp_cert[label_reward]*self.scale
                         reward_sum += -1
             reward_sums.append(reward_sum)
-            #print("alpha: ", self.alpha)
-            #print("beta: ", self.beta)  
             
             # map_reward_estimation(self.alpha, self.beta, grid_width, grid_height, road)
             # Safe experiment data          

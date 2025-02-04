@@ -159,18 +159,6 @@ def map_reward_estimation(alpha, beta, grid_width, grid_height, road):
     for i in range(1, len(road)):
         line = Line2D((road[i-1][0], road[i][0]), (road[i-1][1], road[i][1]), linewidth=30, color='grey')
         ax.add_line(line)
-     # For each image and location, add to the plot
-    #for image, location in zip(images, loc_landmarks):
-    #    # Open the image
-    #    img = Image.open(image)
-    #    # Convert the image into numpy array
-    #    img = np.array(img).astype(np.uint8) / 255.
-    #    # Create an offset image artist
-    #    im = OffsetImage(img, zoom=0.3)
-    #    # Use AnnotationBbox to put the image on the plot at the specified location
-    #    ab = AnnotationBbox(im, location, frameon=False)
-    #    # Add the artist to the plot
-    #    ax.add_artist(ab)
     for ii in range(state_expected_reward.size):
         grid_row = ii // grid_height
         grid_col = ii % grid_height
@@ -187,51 +175,3 @@ def map_reward_estimation(alpha, beta, grid_width, grid_height, road):
     ax.set_xticklabels([])
     ax.set_yticklabels([])
     plt.show()
-
-def map_loc_landmark(ind_loc, ind_landmark, certainty_reward, pixel_landmarks, grid_width, grid_height):
-    map_loc = np.zeros([grid_width, grid_height])
-    x_left = int(pixel_landmarks[ind_landmark, 0])
-    x_right = int(pixel_landmarks[ind_landmark, 1])
-    y_down = int(pixel_landmarks[ind_landmark, 2])
-    y_up = int(pixel_landmarks[ind_landmark, 3])
-    # "above under left right around in"
-    if ind_loc == 0: # above
-        map_loc[x_left:x_right+1, y_up] = 0.5 * certainty_reward
-        map_loc[x_left+1:x_right, y_up] = certainty_reward
-        #if y_up < grid_height-1:
-        #    map_loc[x_left:x_right+1, y_up+1] = certainty_reward*0.5
-        
-    elif ind_loc == 1: # under
-        map_loc[x_left:x_right+1, y_down] = 0.5 * certainty_reward
-        map_loc[x_left+1:x_right, y_down] = certainty_reward
-        
-    elif ind_loc == 2: # left
-        map_loc[x_left, y_down:y_up+1] = certainty_reward * 0.5
-        map_loc[x_left, y_down+1:y_up] = certainty_reward
-        
-    elif ind_loc == 3: # right
-        map_loc[x_right, y_down:y_up+1] = certainty_reward * 0.5
-        map_loc[x_right, y_down+1:y_up] = certainty_reward
-        
-    elif ind_loc == 4: # around
-        map_loc[x_left:x_right+1, y_up] = certainty_reward
-        map_loc[x_left:x_right+1, y_down] = certainty_reward
-        map_loc[x_left, y_down:y_up+1] = certainty_reward
-        map_loc[x_right, y_down:y_up+1] = certainty_reward
-        
-    else: # in
-        if x_right - x_left > 1 and  y_up - y_down > 1:
-            map_loc[x_left+1:x_right, y_down+1:y_up] = certainty_reward
-        elif y_up == grid_height - 1:
-            map_loc[x_left+1:x_right, y_down+1:y_up+1] = certainty_reward
-        elif x_right == grid_width - 1:
-            map_loc[x_left+1:x_right+1, y_down+1:y_up] = certainty_reward
-        elif y_down == 0:
-            map_loc[x_left+1:x_right, y_down:y_up] = certainty_reward
-        elif x_left ==0:
-            map_loc[x_left:x_right, y_down+1:y_up] = certainty_reward
-        else:
-            map_loc[x_left:x_right+1, y_down:y_up+1] = certainty_reward*0.5
-            
-        
-    return map_loc

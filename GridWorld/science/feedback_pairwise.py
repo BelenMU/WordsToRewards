@@ -16,7 +16,7 @@ from matplotlib.lines import Line2D
 
 
 # Import functions
-from science.draw_map import map_loc_landmark, show_trajectory_on_map, show_two_trajectories_on_map
+from science.draw_map import show_trajectory_on_map, show_two_trajectories_on_map
 
 
 def get_preference_HF():
