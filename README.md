@@ -9,3 +9,12 @@ To create the environment
 
 `conda env create -f environment.yml`
 `conda activate env_gridworld`
+
+## Rubik
+
+There are two different notebooks:
+
+1. `main.ipny` to interactively show the greedy policy and to update the reward model and policy. To run this notebook activate the `env_Rubik` environment.
+2. `ask_GPT.ipny` to interpret human feedback to ChatGPT and translate into state-level rewards. To run this notebook activate the `env_GPT` environment.
+
+These notebooks should be run iteratively. 
