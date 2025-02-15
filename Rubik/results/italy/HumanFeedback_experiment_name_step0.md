@@ -1,0 +1,1 @@
+The goal is to replicate the Italian flag on the front face of the cube. From state 4 until 10, it is all wrong.
