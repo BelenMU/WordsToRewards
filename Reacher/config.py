@@ -53,7 +53,7 @@ COLORS = ['#4d4d4d', '#000080', '#990000', '#b3b3b3', '#008080', '#800080', '#99
 #['black', 'blue', 'red', 'green']
 
 # GPT 
-SECRET_KEY = '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'
+SECRET_KEY = 
 SYSTEM_PROMPT = """
 You will return state-reward pairs for a two-joined robotic arm named 'Reacher-v4'. 
 The arm aims to reach targets with its end effector (fingertip), and you must assess what states are good or bad based on human observers' feedback.
