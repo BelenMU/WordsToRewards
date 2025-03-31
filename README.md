@@ -18,3 +18,9 @@ There are two different notebooks:
 2. `ask_GPT.ipny` to interpret human feedback to ChatGPT and translate into state-level rewards. To run this notebook activate the `env_GPT` environment.
 
 These notebooks should be run iteratively. 
+
+## Reacher
+Activate the environment with `conda activate env_mujoco`
+Run iteratively 
+1. `policy_learning.ipynb` to update the agent given the rewards and to record a video to be shown to the oracle for feedback.
+2. `HF_to_rewards.ipynb` to leverage an LLM to interpret the human feedback and transalte it into state-reward pairs.
