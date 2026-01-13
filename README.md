@@ -34,7 +34,7 @@ Run iteratively
 If you use this code, please cite:
 
 ```bibtex
-@article{martinurcelay_words2rewards_tmlr,
+@article{words2rewards,
   title   = {From Words to Rewards: Leveraging Natural Language for Reinforcement Learning},
   author  = {Martín-Urcelay, Belén and Krause, Andreas and Ramponi, Giorgia},
   journal = {Transactions on Machine Learning Research},
