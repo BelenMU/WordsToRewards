@@ -1,6 +1,5 @@
 # From Words to Rewards: Leveraging Natural Language for Reinforcement Learning
-Belén Martín-Urcelay, Andreas Krause, Giorgia Ramponi. [TMLR 2026]
-OpenReview: <[OpenReview link](https://openreview.net/forum?id=Gbx0pLANdf)>
+Belén Martín-Urcelay, Andreas Krause, Giorgia Ramponi. [TMLR 2026](https://openreview.net/forum?id=Gbx0pLANdf)
 
 
 We explore the use of natural language to specify rewards in Reinforcement Learning with Human Feedback (RLHF). Unlike traditional approaches that rely on simplistic preference feedback, we harness Large Language Models (LLMs) to translate rich text feedback into state-level labels for training a reward model. Our empirical studies with human participants demonstrate that our method accurately approximates the reward function and achieves significant performance gains with fewer interactions than baseline methods.
