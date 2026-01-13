@@ -1,5 +1,9 @@
 # From Words to Rewards: Leveraging Natural Language for Reinforcement Learning
-We explore the use of natural language for specifying rewards in Reinforcement Learning with Human Feedback (RLHF). Human language provides rich and nuanced information, yet most existing approaches rely on simplistic preference data or constrain the text structure. In contrast, we harness the power of Large Language Models (LLMs) to fully leverage natural text to efficiently train a reward model. Our empirical studies with human participants highlight the remarkable benefits of this strategy. Even with minimal human interaction, our method of integrating text feedback with LLMs accurately approximates the reward function and leads to significant 
+Belén Martín-Urcelay, Andreas Krause, Giorgia Ramponi. [TMLR 2026]
+OpenReview: <[OpenReview link](https://openreview.net/forum?id=Gbx0pLANdf)>
+
+
+We explore the use of natural language to specify rewards in Reinforcement Learning with Human Feedback (RLHF). Unlike traditional approaches that rely on simplistic preference feedback, we harness Large Language Models (LLMs) to translate rich text feedback into state-level labels for training a reward model. Our empirical studies with human participants demonstrate that our method accurately approximates the reward function and achieves significant performance gains with fewer interactions than baseline methods.
 
 
 
@@ -24,3 +28,16 @@ Activate the environment with `conda activate env_mujoco`
 Run iteratively 
 1. `policy_learning.ipynb` to update the agent given the rewards and to record a video to be shown to the oracle for feedback.
 2. `HF_to_rewards.ipynb` to leverage an LLM to interpret the human feedback and transalte it into state-reward pairs.
+
+
+## Citation
+
+If you use this code, please cite:
+
+```bibtex
+@article{martinurcelay_words2rewards_tmlr,
+  title   = {From Words to Rewards: Leveraging Natural Language for Reinforcement Learning},
+  author  = {Martín-Urcelay, Belén and Krause, Andreas and Ramponi, Giorgia},
+  journal = {Transactions on Machine Learning Research},
+  year    = {2026}
+}
